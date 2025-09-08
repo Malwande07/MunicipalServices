@@ -1,0 +1,24 @@
+﻿@model MunicipalServices.Models.Issue
+
+@{
+    ViewData["Title"] = "Delete Issue";
+}
+
+<h2>Delete Issue</h2>
+
+<div class="alert alert-warning">
+    <strong>Are you sure?</strong> This will permanently delete the issue report.
+</div>
+
+<div class="mb-3">
+    <p><strong>ID:</strong> @Model.Id</p>
+    <p><strong>Category:</strong> @Model.Category</p>
+    <p><strong>Location:</strong> @Model.Location</p>
+    <p><strong>Description:</strong> @Model.Description</p>
+</div>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="List" class="btn btn-secondary">Cancel</a>
+</form>

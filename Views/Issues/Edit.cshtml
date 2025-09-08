@@ -1,0 +1,29 @@
+﻿@model MunicipalServices.Models.Issue
+
+@{
+    ViewData["Title"] = "Edit Issue";
+}
+
+<h2>Edit Issue</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Issue Category</label>
+        <input name="Category" class="form-control" value="@Model.Category" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input name="Location" class="form-control" value="@Model.Location" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="Description" class="form-control" rows="3">@Model.Description</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Save Changes</button>
+    <a asp-action="List" class="btn btn-secondary">Cancel</a>
+</form>

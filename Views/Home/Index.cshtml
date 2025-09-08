@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Main Menu";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center fw-bold mb-3">CityConnect — Municipal Services</h1>
+    <p class="text-center text-muted mb-5">Choose an option below to get started</p>
+
+    <div class="row g-4">
+        <!-- Report Issues -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3" style="font-size: 2rem;">📢</div>
+                    <h5 class="card-title fw-bold">Report Issues</h5>
+                    <p class="card-text text-muted">Submit service issues like potholes, water leaks, or electricity problems.</p>
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-primary w-100">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Local Events -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3" style="font-size: 2rem;">🎉</div>
+                    <h5 class="card-title fw-bold">Local Events</h5>
+                    <p class="card-text text-muted">Stay updated with upcoming municipal events and announcements.</p>
+                    <a class="btn btn-outline-secondary w-100 disabled">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Requests -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3" style="font-size: 2rem;">🛠️</div>
+                    <h5 class="card-title fw-bold">Service Requests</h5>
+                    <p class="card-text text-muted">Check the status of your service requests and follow progress.</p>
+                    <a class="btn btn-outline-secondary w-100 disabled">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tip -->
+    <div class="alert alert-info mt-5 text-center">
+        💡 <strong>Tip:</strong> You can attach photos or documents to help our teams resolve issues faster.
+    </div>
+</div>

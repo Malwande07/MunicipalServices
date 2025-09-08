@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Report an Issue";
+}
+
+<div class="container mt-5">
+    <h2 class="fw-bold text-center mb-4 text-primary">📢 Report a Municipal Issue</h2>
+    <p class="text-center text-muted mb-5">
+        Please provide details about the issue so our teams can address it quickly.
+    </p>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 p-4">
+                <form asp-action="Report" asp-controller="Issues" method="post" enctype="multipart/form-data">
+
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">🏷️ Title</label>
+                        <input type="text" class="form-control" name="Title" placeholder="Enter a short title" required />
+                    </div>
+
+                    <!-- Location -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📍 Location</label>
+                        <input type="text" class="form-control" name="Location" placeholder="Enter the location" required />
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">🗂️ Category</label>
+                        <select class="form-select" name="Category" required>
+                            <option value="">-- Select a category --</option>
+                            <option value="Sanitation">Sanitation</option>
+                            <option value="Roads">Roads</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📝 Description</label>
+                        <textarea class="form-control" name="Description" rows="4" placeholder="Provide a detailed description" required></textarea>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📷 Attach Photo or Document (optional)</label>
+                        <input type="file" class="form-control" name="Attachment" accept=".jpg,.jpeg,.png,.pdf" />
+                        <div class="form-text">Supported formats: JPG, PNG, PDF</div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">🚀 Submit Issue</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

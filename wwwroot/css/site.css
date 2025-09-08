@@ -1,0 +1,77 @@
+/* ===========================
+   Custom Municipal Services Theme
+   =========================== */
+
+/* Global body styles */
+body {
+    background-color: #f5f6fa; /* soft light background */
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Navbar styling */
+.navbar {
+    background-color: #004080 !important; /* municipal blue */
+}
+
+.navbar-brand, .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+    .navbar-brand:hover, .nav-link:hover {
+        color: #ffcc00 !important; /* gold accent */
+    }
+
+/* Card styling */
+.card {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+/* Card titles */
+.card-title {
+    color: #004080;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #004080;
+    border-color: #004080;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+    .btn-primary:hover {
+        background-color: #003366;
+        border-color: #003366;
+    }
+
+.btn-outline-secondary {
+    border-radius: 12px;
+}
+
+/* Footer */
+footer.footer {
+    background-color: #004080;
+    color: #ffffff;
+    padding: 15px 0;
+    text-align: center;
+}
+
+    footer.footer a {
+        color: #ffcc00 !important;
+        text-decoration: none;
+    }
+
+/* Alerts */
+.alert-info {
+    background-color: #e6f0ff;
+    border-color: #cce0ff;
+    color: #004080;
+    border-radius: 12px;
+}

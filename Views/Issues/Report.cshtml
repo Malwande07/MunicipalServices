@@ -3,32 +3,37 @@
 }
 
 <div class="container mt-5">
-    <h2 class="fw-bold text-center mb-4 text-primary">📢 Report a Municipal Issue</h2>
+    <h2 class="fw-bold text-center mb-3 text-primary">📢 Report a Municipal Issue</h2>
     <p class="text-center text-muted mb-5">
-        Please provide details about the issue so our teams can address it quickly.
+        Help us improve your community by reporting issues. <br />
+        <span class="text-success fw-semibold">✨ Earn points every time you contribute!</span>
     </p>
 
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-sm border-0 p-4">
+            <div class="card shadow-lg border-0 rounded-4 p-4"
+                 style="background: #ffffffee; backdrop-filter: blur(6px);">
+
                 <form asp-action="Report" asp-controller="Issues" method="post" enctype="multipart/form-data">
 
                     <!-- Title -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">🏷️ Title</label>
-                        <input type="text" class="form-control" name="Title" placeholder="Enter a short title" required />
+                        <input type="text" class="form-control rounded-3 shadow-sm"
+                               name="Title" placeholder="Enter a short title" required />
                     </div>
 
                     <!-- Location -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">📍 Location</label>
-                        <input type="text" class="form-control" name="Location" placeholder="Enter the location" required />
+                        <input type="text" class="form-control rounded-3 shadow-sm"
+                               name="Location" placeholder="Enter the location" required />
                     </div>
 
                     <!-- Category -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">🗂️ Category</label>
-                        <select class="form-select" name="Category" required>
+                        <select class="form-select rounded-3 shadow-sm" name="Category" required>
                             <option value="">-- Select a category --</option>
                             <option value="Sanitation">Sanitation</option>
                             <option value="Roads">Roads</option>
@@ -40,22 +45,34 @@
                     <!-- Description -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">📝 Description</label>
-                        <textarea class="form-control" name="Description" rows="4" placeholder="Provide a detailed description" required></textarea>
+                        <textarea class="form-control rounded-3 shadow-sm"
+                                  name="Description" rows="4"
+                                  placeholder="Provide a detailed description" required></textarea>
                     </div>
 
                     <!-- File Upload -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">📷 Attach Photo or Document (optional)</label>
-                        <input type="file" class="form-control" name="Attachment" accept=".jpg,.jpeg,.png,.pdf" />
+                        <input type="file" class="form-control rounded-3 shadow-sm"
+                               name="Attachment" accept=".jpg,.jpeg,.png,.pdf" />
                         <div class="form-text">Supported formats: JPG, PNG, PDF</div>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">🚀 Submit Issue</button>
+                        <button type="submit"
+                                class="btn btn-lg shadow-sm text-white fw-bold"
+                                style="background: linear-gradient(90deg, #4a90e2, #50c878); border: none;">
+                            🚀 Submit Issue
+                        </button>
                     </div>
-
                 </form>
+
+                <!-- Reward Notice -->
+                <div class="text-center mt-3 text-muted small">
+                    ✅ Submitting this issue will reward you with
+                    <span class="fw-bold text-success">+10 points</span>.
+                </div>
             </div>
         </div>
     </div>

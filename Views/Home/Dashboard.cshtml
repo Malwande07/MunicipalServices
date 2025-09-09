@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-5">
+    <h2 class="fw-bold text-center text-primary mb-5">🌍 Municipal Services Dashboard</h2>
+    <p class="text-center text-muted mb-4">
+        Welcome! Access the main features below or track your community points.
+    </p>
+
+    <!-- User Points -->
+    <div class="text-center mb-5">
+        <span class="badge bg-warning text-dark fs-5 px-4 py-2 shadow">
+            ⭐ Your Points: @(ViewBag.UserPoints ?? 0)
+        </span>
+    </div>
+
+    <!-- Dashboard Tiles -->
+    <div class="row g-4 justify-content-center">
+        <!-- Report Issue -->
+        <div class="col-12 col-md-4">
+            <a asp-controller="Issues" asp-action="Report" class="text-decoration-none">
+                <div class="card shadow-lg rounded-4 h-100 text-center p-4 hover-effect">
+                    <div class="card-body">
+                        <div class="display-3 mb-3 text-primary">📢</div>
+                        <h5 class="card-title fw-bold">Report an Issue</h5>
+                        <p class="card-text text-muted">Submit a new municipal issue quickly and securely.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- View Issues -->
+        <div class="col-12 col-md-4">
+            <a asp-controller="Issues" asp-action="List" class="text-decoration-none">
+                <div class="card shadow-lg rounded-4 h-100 text-center p-4 hover-effect">
+                    <div class="card-body">
+                        <div class="display-3 mb-3 text-success">📋</div>
+                        <h5 class="card-title fw-bold">View Reported Issues</h5>
+                        <p class="card-text text-muted">See all reported issues and track their progress.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="col-12 col-md-4">
+            <a asp-controller="Issues" asp-action="Leaderboard" class="text-decoration-none">
+                <div class="card shadow-lg rounded-4 h-100 text-center p-4 hover-effect">
+                    <div class="card-body">
+                        <div class="display-3 mb-3 text-warning">🏆</div>
+                        <h5 class="card-title fw-bold">Community Leaderboard</h5>
+                        <p class="card-text text-muted">Check top contributors and your community ranking.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hover effects for cards */
+    .hover-effect {
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+        .hover-effect:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+        }
+
+    /* Display icons */
+    .display-3 {
+        font-size: 3rem;
+    }
+</style>

@@ -1,52 +1,93 @@
-﻿<!DOCTYPE html>
+﻿@inject MunicipalServices.Data.PointsService PointsService
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Municipal Services";
+    string username = "GuestUser"; // Replace with Identity user when implemented
+    int userPoints = PointsService.GetPoints(username);
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Municipal Services</title>
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        /* Custom Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #4a90e2, #50c878);
+        }
+
+        .navbar-brand {
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .nav-link {
+            color: #fff !important;
+            transition: all 0.3s;
+        }
+
+            .nav-link:hover {
+                text-decoration: underline;
+                transform: translateY(-2px);
+            }
+
+        /* Points Badge */
+        .points-badge {
+            background: #ffc107;
+            color: #212529;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(90deg, #50c878, #4a90e2);
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <!-- NAVBAR -->
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-light border-bottom shadow-sm mb-3">
+        <nav class="navbar navbar-expand-sm shadow-sm">
             <div class="container-fluid">
-                <!-- Brand -->
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                    Municipal Services
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    🌍 Municipal Services
                 </a>
-
-                <!-- Mobile toggle -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarNav" aria-controls="navbarNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Links -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">🏠 Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">🔒 Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Issues" asp-action="Report">📢 Report Issue</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Issues" asp-action="List">📋 View Issues</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark disabled">🎉 Local Events</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark disabled">🛠️ Service Requests</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Issues" asp-action="Report">📢 Report Issue</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Issues" asp-action="List">📋 View Issues</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Issues" asp-action="Leaderboard">🏆 Leaderboard</a></li>
+                        <li class="nav-item"><a class="nav-link disabled">🎉 Local Events</a></li>
+                        <li class="nav-item"><a class="nav-link disabled">🛠️ Service Requests</a></li>
                     </ul>
+
+                    <span class="points-badge">
+                        ⭐ Points: @userPoints
+                    </span>
                 </div>
             </div>
         </nav>
@@ -54,31 +95,30 @@
 
     <!-- MAIN CONTENT -->
     <div class="container">
-        <!-- ✅ Display success/error messages -->
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
-                @TempData["Success"]
+            <div class="alert alert-success alert-dismissible fade show mt-3 shadow" role="alert">
+                ✅ @TempData["Success"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
         @if (TempData["Error"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-                @TempData["Error"]
+            <div class="alert alert-danger alert-dismissible fade show mt-3 shadow" role="alert">
+                ⚠️ @TempData["Error"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
 
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 mt-3">
             @RenderBody()
         </main>
     </div>
 
     <!-- FOOTER -->
-    <footer class="border-top footer text-muted mt-4">
+    <footer class="mt-5">
         <div class="container text-center py-3">
-            &copy; 2025 - Municipal Services | Built with ASP.NET Core MVC
+            &copy; 2025 - Municipal Services | Built with ❤️ in ASP.NET Core MVC
         </div>
     </footer>
 

@@ -1,0 +1,80 @@
+﻿@model List<MunicipalServices.Models.UserPoints>
+
+@{
+    ViewData["Title"] = "Community Leaderboard";
+    string currentUser = "GuestUser"; // Later replace with logged-in user from Identity
+}
+
+<div class="container mt-5">
+    <h2 class="fw-bold text-center text-primary mb-4">🏆 Community Leaderboard</h2>
+
+    <table class="table table-hover shadow-sm align-middle rounded-3 overflow-hidden">
+        <thead class="table-dark">
+            <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>User</th>
+                <th style="width: 120px;">Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var user = Model[i];
+                bool isCurrentUser = user.Username == currentUser;
+
+                string rowClass = i switch
+                {
+                    0 => "table-warning fw-bold", // 🥇 Highlight top spot
+                    1 => "table-light fw-bold",   // 🥈 Second place
+                    2 => "table-secondary fw-bold", // 🥉 Third place
+                    _ => isCurrentUser ? "table-success fw-bold" : ""
+                };
+
+                <tr class="@rowClass">
+                    <td>
+                        @(i + 1)
+                        @if (i == 0)
+                        {
+                            <span>🥇</span>
+                        }
+                        else if (i == 1)
+                        {
+
+                            <span>🥈</span>
+                        }
+                        else if (i == 2)
+                        {
+
+                            <span>🥉</span>
+                        }
+                    </td>
+                    <td>
+                        @user.Username
+                        @if (isCurrentUser)
+                        {
+                            <span class="badge bg-success ms-2">You</span>
+                        }
+                    </td>
+                    <td class="fw-bold">@user.Points</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any(u => u.Username == currentUser))
+    {
+        <div class="alert alert-info text-center mt-3">
+            🌟 You haven’t earned points yet. Report an issue to climb the leaderboard!
+        </div>
+    }
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f1f9ff !important;
+    }
+
+    h2 {
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+</style>

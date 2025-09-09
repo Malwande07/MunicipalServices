@@ -1,12 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MunicipalServices.Data;
 using MunicipalServices.Models;
+using System.IO;
 
 namespace MunicipalServices.Controllers
 {
     public class IssuesController : Controller
     {
-        private static IssueStore issueStore = new IssueStore();
+        private readonly IssueStore _issueStore;
+        private readonly PointsService _pointsService;
+
+        // ✅ Constructor injection
+        public IssuesController(PointsService pointsService)
+        {
+            _pointsService = pointsService;
+            _issueStore = new IssueStore(); // You can make this injectable later if needed
+        }
 
         // GET: /Issues/Report
         [HttpGet]
@@ -35,17 +44,25 @@ namespace MunicipalServices.Controllers
                 }
             }
 
-            // ✅ Store issue in our custom IssueStore (linked list)
-            issueStore.AddIssue(title, description, location, category, filePath);
+            // ✅ Store issue in IssueStore
+            _issueStore.AddIssue(title, description, location, category, filePath);
 
-            TempData["Success"] = "✅ Your issue has been reported!";
+            // ✅ Add gamification reward (temporary demo user)
+            string username = "GuestUser"; // Replace with logged-in Identity user later
+            _pointsService.AddPoints(username, 10);
+
+            TempData["Success"] = $"✅ Your issue has been reported! 🎉 You earned 10 points.";
             return RedirectToAction("List");
         }
 
         // GET: /Issues/List
         public IActionResult List()
         {
-            var issues = issueStore.GetAllIssues();
+            var issues = _issueStore.GetAllIssues();
+
+            // ✅ Show points for demo user
+            ViewBag.Points = _pointsService.GetPoints("GuestUser");
+
             return View(issues);
         }
 
@@ -53,7 +70,7 @@ namespace MunicipalServices.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var issue = issueStore.GetIssueById(id);
+            var issue = _issueStore.GetIssueById(id);
             if (issue == null) return NotFound();
             return View(issue);
         }
@@ -62,7 +79,7 @@ namespace MunicipalServices.Controllers
         [HttpPost]
         public IActionResult Edit(Issue issue)
         {
-            issueStore.UpdateIssue(issue);
+            _issueStore.UpdateIssue(issue);
             TempData["Success"] = "✏️ Issue updated successfully!";
             return RedirectToAction("List");
         }
@@ -71,7 +88,7 @@ namespace MunicipalServices.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            var issue = issueStore.GetIssueById(id);
+            var issue = _issueStore.GetIssueById(id);
             if (issue == null) return NotFound();
             return View(issue);
         }
@@ -80,9 +97,16 @@ namespace MunicipalServices.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
-            issueStore.DeleteIssue(id);
+            _issueStore.DeleteIssue(id);
             TempData["Success"] = "🗑️ Issue deleted successfully!";
             return RedirectToAction("List");
+        }
+
+        // ✅ Leaderboard Page
+        public IActionResult Leaderboard()
+        {
+            var leaderboard = _pointsService.GetLeaderboard();
+            return View(leaderboard);
         }
     }
 }

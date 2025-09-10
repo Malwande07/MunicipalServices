@@ -10,11 +10,11 @@ namespace MunicipalServices.Controllers
         private readonly IssueStore _issueStore;
         private readonly PointsService _pointsService;
 
-        // ✅ Constructor injection
+        // Constructor injection
         public IssuesController(PointsService pointsService)
         {
             _pointsService = pointsService;
-            _issueStore = new IssueStore(); // You can make this injectable later if needed
+            _issueStore = new IssueStore(); // Can be made injectable later
         }
 
         // GET: /Issues/Report
@@ -30,7 +30,6 @@ namespace MunicipalServices.Controllers
         {
             string filePath = null;
 
-            // ✅ Save uploaded file to wwwroot/uploads
             if (attachment != null && attachment.Length > 0)
             {
                 var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
@@ -44,11 +43,9 @@ namespace MunicipalServices.Controllers
                 }
             }
 
-            // ✅ Store issue in IssueStore
             _issueStore.AddIssue(title, description, location, category, filePath);
 
-            // ✅ Add gamification reward (temporary demo user)
-            string username = "GuestUser"; // Replace with logged-in Identity user later
+            string username = "GuestUser"; // Temporary demo user
             _pointsService.AddPoints(username, 10);
 
             TempData["Success"] = $"✅ Your issue has been reported! 🎉 You earned 10 points.";
@@ -59,10 +56,7 @@ namespace MunicipalServices.Controllers
         public IActionResult List()
         {
             var issues = _issueStore.GetAllIssues();
-
-            // ✅ Show points for demo user
             ViewBag.Points = _pointsService.GetPoints("GuestUser");
-
             return View(issues);
         }
 
@@ -100,13 +94,6 @@ namespace MunicipalServices.Controllers
             _issueStore.DeleteIssue(id);
             TempData["Success"] = "🗑️ Issue deleted successfully!";
             return RedirectToAction("List");
-        }
-
-        // ✅ Leaderboard Page
-        public IActionResult Leaderboard()
-        {
-            var leaderboard = _pointsService.GetLeaderboard();
-            return View(leaderboard);
         }
     }
 }

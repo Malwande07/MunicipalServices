@@ -1,4 +1,6 @@
-﻿@{
+﻿@model MunicipalServices.Models.Issue
+
+@{
     ViewData["Title"] = "Report an Issue";
 }
 
@@ -15,46 +17,46 @@
                  style="background: #ffffffee; backdrop-filter: blur(6px);">
 
                 <form asp-action="Report" asp-controller="Issues" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <!-- Title -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">🏷️ Title</label>
-                        <input type="text" class="form-control rounded-3 shadow-sm"
-                               name="Title" placeholder="Enter a short title" required />
+                        <label asp-for="Title" class="form-label fw-bold">🏷️ Title</label>
+                        <input asp-for="Title" class="form-control rounded-3 shadow-sm" placeholder="Enter a short title" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
 
                     <!-- Location -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">📍 Location</label>
-                        <input type="text" class="form-control rounded-3 shadow-sm"
-                               name="Location" placeholder="Enter the location" required />
+                        <label asp-for="Location" class="form-label fw-bold">📍 Location</label>
+                        <input asp-for="Location" class="form-control rounded-3 shadow-sm" placeholder="Enter the location" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
                     </div>
 
                     <!-- Category -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">🗂️ Category</label>
-                        <select class="form-select rounded-3 shadow-sm" name="Category" required>
+                        <label asp-for="Category" class="form-label fw-bold">🗂️ Category</label>
+                        <select asp-for="Category" class="form-select rounded-3 shadow-sm">
                             <option value="">-- Select a category --</option>
                             <option value="Sanitation">Sanitation</option>
                             <option value="Roads">Roads</option>
                             <option value="Utilities">Utilities</option>
                             <option value="Other">Other</option>
                         </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
                     </div>
 
                     <!-- Description -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">📝 Description</label>
-                        <textarea class="form-control rounded-3 shadow-sm"
-                                  name="Description" rows="4"
-                                  placeholder="Provide a detailed description" required></textarea>
+                        <label asp-for="Description" class="form-label fw-bold">📝 Description</label>
+                        <textarea asp-for="Description" class="form-control rounded-3 shadow-sm" rows="4" placeholder="Provide a detailed description"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
                     <!-- File Upload -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">📷 Attach Photo or Document (optional)</label>
-                        <input type="file" class="form-control rounded-3 shadow-sm"
-                               name="Attachment" accept=".jpg,.jpeg,.png,.pdf" />
+                        <input type="file" class="form-control rounded-3 shadow-sm" name="Attachment" accept=".jpg,.jpeg,.png,.pdf" />
                         <div class="form-text">Supported formats: JPG, PNG, PDF</div>
                     </div>
 
@@ -77,3 +79,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

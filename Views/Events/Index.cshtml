@@ -13,6 +13,11 @@
     <!-- SEARCH & FILTER BAR -->
     <form asp-action="Search" method="post" class="row g-3 align-items-end mb-4">
         <div class="col-md-3">
+            <label class="form-label fw-semibold">Keyword</label>
+            <input type="text" name="keyword" class="form-control" placeholder="Search events..." />
+        </div>
+
+        <div class="col-md-2">
             <label class="form-label fw-semibold">Category</label>
             <select name="category" class="form-select">
                 <option value="">All Categories</option>
@@ -26,7 +31,17 @@
             </select>
         </div>
 
-        <div class="col-md-9 d-grid">
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">From</label>
+            <input type="date" name="from" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">To</label>
+            <input type="date" name="to" class="form-control" />
+        </div>
+
+        <div class="col-md-3 d-grid">
             <button type="submit" class="btn btn-success fw-bold">
                 🔍 Search
             </button>

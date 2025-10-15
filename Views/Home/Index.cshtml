@@ -1,51 +1,93 @@
 ﻿@{
     ViewData["Title"] = "Main Menu";
+    Layout = "_Layout";
 }
 
 <div class="container mt-5">
-    <h1 class="text-center fw-bold mb-3">CityConnect — Municipal Services</h1>
+    <h1 class="text-center fw-bold mb-3">🏙️ CityConnect — Municipal Services</h1>
     <p class="text-center text-muted mb-5">Choose an option below to get started</p>
 
     <div class="row g-4">
         <!-- Report Issues -->
         <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0">
+            <div class="card shadow-sm h-100 border-0 hover-shadow transition-all">
                 <div class="card-body text-center">
                     <div class="mb-3" style="font-size: 2rem;">📢</div>
                     <h5 class="card-title fw-bold">Report Issues</h5>
-                    <p class="card-text text-muted">Submit service issues like potholes, water leaks, or electricity problems.</p>
-                    <a asp-controller="Issues" asp-action="Report" class="btn btn-primary w-100">Go</a>
+                    <p class="card-text text-muted small">Submit service issues like potholes, water leaks, or electricity problems.</p>
+                    <a asp-controller="Issues" asp-action="Report" class="btn btn-primary w-100 mt-3">
+                        Report an Issue
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Local Events -->
         <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0">
+            <div class="card shadow-sm h-100 border-0 hover-shadow transition-all">
                 <div class="card-body text-center">
                     <div class="mb-3" style="font-size: 2rem;">🎉</div>
                     <h5 class="card-title fw-bold">Local Events</h5>
-                    <p class="card-text text-muted">Stay updated with upcoming municipal events and announcements.</p>
-                    <a class="btn btn-outline-secondary w-100 disabled">Coming Soon</a>
+                    <p class="card-text text-muted small">Stay updated with upcoming municipal events and announcements.</p>
+                    <a asp-controller="Events" asp-action="Index" class="btn btn-success w-100 mt-3">
+                        View Events
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Service Requests -->
         <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0">
+            <div class="card shadow-sm h-100 border-0 hover-shadow transition-all">
                 <div class="card-body text-center">
                     <div class="mb-3" style="font-size: 2rem;">🛠️</div>
                     <h5 class="card-title fw-bold">Service Requests</h5>
-                    <p class="card-text text-muted">Check the status of your service requests and follow progress.</p>
-                    <a class="btn btn-outline-secondary w-100 disabled">Coming Soon</a>
+                    <p class="card-text text-muted small">Check the status of your service requests and follow progress in real-time.</p>
+                    <a asp-controller="Services" asp-action="Status" class="btn btn-outline-secondary w-100 mt-3">
+                        Track Status
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Section -->
+    <div class="row mt-5 g-3">
+        <div class="col-md-6">
+            <div class="card bg-light border-0 text-center py-3">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Active Issues</h6>
+                    <h3 class="fw-bold text-primary">24</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-light border-0 text-center py-3">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Upcoming Events</h6>
+                    <h3 class="fw-bold text-success">12</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Tip -->
-    <div class="alert alert-info mt-5 text-center">
+    <div class="alert alert-info mt-5 text-center border-0">
         💡 <strong>Tip:</strong> You can attach photos or documents to help our teams resolve issues faster.
     </div>
 </div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+        .hover-shadow:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-4px);
+        }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>

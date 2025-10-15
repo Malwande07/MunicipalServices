@@ -1,0 +1,132 @@
+﻿@model IEnumerable<MunicipalServices.Models.EventItem>
+
+@{
+    ViewData["Title"] = "Local Events & Announcements";
+    var categories = ViewBag.Categories as IEnumerable<string>;
+    var recommendations = ViewBag.Recommendations as IEnumerable<MunicipalServices.Models.EventItem>;
+    var lastViewed = ViewBag.LastViewed as IEnumerable<MunicipalServices.Models.EventItem>;
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center fw-bold text-primary">🎉 Local Events & Announcements</h2>
+
+    <!-- SEARCH & FILTER BAR -->
+    <form asp-action="Search" method="post" class="row g-3 align-items-end mb-4">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Category</label>
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                @if (categories != null)
+                {
+                    foreach (var c in categories)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-9 d-grid">
+            <button type="submit" class="btn btn-success fw-bold">
+                🔍 Search
+            </button>
+        </div>
+    </form>
+
+    <!-- EVENT LIST DISPLAY -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            @foreach (var evt in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">@evt.Title</h5>
+                            <p class="card-text text-muted">@evt.Description</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="badge bg-info">@evt.Category</span>
+                                <span class="badge bg-secondary">@evt.Start.ToShortDateString()</span>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end bg-transparent border-0">
+                            <a asp-action="ViewEvent" asp-route-id="@evt.Id" class="btn btn-outline-primary btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center shadow-sm mt-4">
+            ⚠️ No events found. Try adjusting your search filters.
+        </div>
+    }
+
+    <!-- LAST VIEWED SECTION -->
+    @if (lastViewed != null && lastViewed.Any())
+    {
+        <hr class="my-5" />
+        <h3 class="text-center text-secondary mb-3">👀 Recently Viewed</h3>
+        <div class="row">
+            @foreach (var viewed in lastViewed)
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card border-secondary shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-secondary">@viewed.Title</h5>
+                            <p class="card-text text-muted">@viewed.Description</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary">@viewed.Category</span>
+                                <span class="badge bg-light text-dark">@viewed.Start.ToShortDateString()</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- RECOMMENDATIONS -->
+    @if (recommendations != null && recommendations.Any())
+    {
+        <hr class="my-5" />
+        <h3 class="text-center text-success mb-3">🌟 Recommended for You</h3>
+        <div class="row">
+            @foreach (var rec in recommendations)
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card border-warning shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">@rec.Title</h5>
+                            <p class="card-text text-muted">@rec.Description</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">@rec.Category</span>
+                                <span class="badge bg-light text-dark">@rec.Start.ToShortDateString()</span>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end bg-transparent border-0">
+                            <a asp-action="ViewEvent" asp-route-id="@rec.Id" class="btn btn-outline-warning btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Optional: Add smooth fade animation for search results
+        $(function () {
+            $("form").on("submit", function () {
+                $(".row").fadeOut(200).fadeIn(400);
+            });
+        });
+    </script>
+}

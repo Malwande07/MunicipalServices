@@ -1,7 +1,7 @@
 ﻿@inject MunicipalServices.Data.PointsService PointsService
 @{
     ViewData["Title"] = ViewData["Title"] ?? "Municipal Services";
-    string username = "GuestUser"; // Temporary demo user
+    string username = User?.Identity?.Name ?? "GuestUser"; // Use authenticated user if available
     int userPoints = PointsService.GetPoints(username);
 }
 
@@ -71,8 +71,8 @@
                         <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Home</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="Issues" asp-action="Report">📢 Report Issue</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="Issues" asp-action="List">📋 View Issues</a></li>
-                        <li class="nav-item"><a class="nav-link disabled">🎉 Local Events</a></li>
-                        <li class="nav-item"><a class="nav-link disabled">🛠️ Service Requests</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">🎉 Local Events</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Services" asp-action="Index">🛠️ Service Requests</a></li>
                     </ul>
 
                     <span class="points-badge">⭐ Points: @userPoints</span>

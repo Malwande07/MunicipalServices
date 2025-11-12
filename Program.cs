@@ -226,160 +226,67 @@ namespace MunicipalServices
             {
                 var service = scope.ServiceProvider.GetRequiredService<ServiceRequestService>();
 
-                // Request 1 - High Priority
+                // ✅ MAIN ISSUE: Water pipe burst
                 service.AddRequest(new ServiceRequest
                 {
                     RequestId = "SR001",
                     Title = "Water Main Break - Emergency",
-                    Description = "Major water main break causing flooding on Main Street",
+                    Description = "Major water main burst on Elm Street causing flooding",
                     Category = "Utilities",
                     Status = RequestStatus.InProgress,
-                    DateSubmitted = DateTime.Now.AddDays(-5),
-                    Location = "Main Street & 5th Ave",
+                    DateSubmitted = DateTime.Now.AddDays(-2),
+                    Location = "Elm Street, District 5",
                     Priority = 1,
                     AssignedDepartment = "Water & Sanitation",
-                    Dependencies = new List<string>()
+                    Dependencies = new List<string>() // No dependencies - this is the main issue
                 });
 
-                // Request 2 - Depends on SR001
+                // ✅ DEPENDENT REQUEST 1: Resident reports no water
                 service.AddRequest(new ServiceRequest
                 {
                     RequestId = "SR002",
-                    Title = "Road Repair - Main Street",
-                    Description = "Repair road damage caused by water main break",
-                    Category = "Infrastructure",
-                    Status = RequestStatus.Submitted,
-                    DateSubmitted = DateTime.Now.AddDays(-4),
-                    Location = "Main Street & 5th Ave",
+                    Title = "No Water Supply - Elm Street",
+                    Description = "No water in my home since yesterday",
+                    Category = "Utilities",
+                    Status = RequestStatus.OnHold, // On hold until main issue fixed
+                    DateSubmitted = DateTime.Now.AddDays(-1),
+                    Location = "123 Elm Street, District 5",
                     Priority = 2,
-                    AssignedDepartment = "Public Works",
-                    Dependencies = new List<string> { "SR001" }
+                    AssignedDepartment = "Water & Sanitation",
+                    Dependencies = new List<string> { "SR001" } // Depends on main water break
                 });
 
-                // Request 3 - High Priority
+                // ✅ DEPENDENT REQUEST 2: Another resident reports no water
                 service.AddRequest(new ServiceRequest
                 {
                     RequestId = "SR003",
-                    Title = "Power Outage - Residential Area",
-                    Description = "Multiple homes without power in District 5",
+                    Title = "No Water Supply - Elm Street",
+                    Description = "No running water for 24 hours",
                     Category = "Utilities",
-                    Status = RequestStatus.InProgress,
-                    DateSubmitted = DateTime.Now.AddDays(-3),
-                    Location = "District 5",
-                    Priority = 1,
-                    AssignedDepartment = "Electricity",
-                    Dependencies = new List<string>()
+                    Status = RequestStatus.OnHold, // On hold until main issue fixed
+                    DateSubmitted = DateTime.Now.AddDays(-1),
+                    Location = "127 Elm Street, District 5",
+                    Priority = 2,
+                    AssignedDepartment = "Water & Sanitation",
+                    Dependencies = new List<string> { "SR001" } // Depends on main water break
                 });
 
-                // Request 4
+                // ✅ DEPENDENT REQUEST 3: Road repair (secondary dependency)
                 service.AddRequest(new ServiceRequest
                 {
                     RequestId = "SR004",
-                    Title = "Pothole Repair Request",
-                    Description = "Large pothole causing traffic hazard",
+                    Title = "Road Damage from Water Break",
+                    Description = "Road surface damaged due to water main break flooding",
                     Category = "Infrastructure",
                     Status = RequestStatus.Submitted,
-                    DateSubmitted = DateTime.Now.AddDays(-10),
-                    Location = "Elm Street",
-                    Priority = 2,
-                    AssignedDepartment = "Public Works",
-                    Dependencies = new List<string>()
-                });
-
-                // Request 5
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR005",
-                    Title = "Streetlight Malfunction",
-                    Description = "Several streetlights not working",
-                    Category = "Utilities",
-                    Status = RequestStatus.Completed,
-                    DateSubmitted = DateTime.Now.AddDays(-15),
-                    DateCompleted = DateTime.Now.AddDays(-2),
-                    Location = "Oak Avenue",
-                    Priority = 3,
-                    AssignedDepartment = "Electricity",
-                    Dependencies = new List<string>()
-                });
-
-                // Request 6 - Depends on SR003
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR006",
-                    Title = "Traffic Light Repair",
-                    Description = "Traffic lights offline due to power outage",
-                    Category = "Safety",
-                    Status = RequestStatus.OnHold,
-                    DateSubmitted = DateTime.Now.AddDays(-2),
-                    Location = "District 5 Intersection",
-                    Priority = 1,
-                    AssignedDepartment = "Traffic Management",
-                    Dependencies = new List<string> { "SR003" }
-                });
-
-                // Request 7
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR007",
-                    Title = "Garbage Collection Missed",
-                    Description = "Scheduled collection not completed",
-                    Category = "Sanitation",
-                    Status = RequestStatus.InProgress,
                     DateSubmitted = DateTime.Now.AddDays(-1),
-                    Location = "Pine Street",
-                    Priority = 2,
-                    AssignedDepartment = "Waste Management",
-                    Dependencies = new List<string>()
-                });
-
-                // Request 8
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR008",
-                    Title = "Tree Removal - Storm Damage",
-                    Description = "Fallen tree blocking road",
-                    Category = "Parks",
-                    Status = RequestStatus.Completed,
-                    DateSubmitted = DateTime.Now.AddDays(-7),
-                    DateCompleted = DateTime.Now.AddDays(-5),
-                    Location = "Park Avenue",
-                    Priority = 1,
-                    AssignedDepartment = "Parks & Recreation",
-                    Dependencies = new List<string>()
-                });
-
-                // Request 9
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR009",
-                    Title = "Sidewalk Crack Repair",
-                    Description = "Dangerous cracks in sidewalk",
-                    Category = "Infrastructure",
-                    Status = RequestStatus.Submitted,
-                    DateSubmitted = DateTime.Now.AddDays(-6),
-                    Location = "Market Street",
+                    Location = "Elm Street, District 5",
                     Priority = 3,
                     AssignedDepartment = "Public Works",
-                    Dependencies = new List<string>()
+                    Dependencies = new List<string> { "SR001" } // Can't fix road until water fixed
                 });
 
-                // Request 10 - Depends on SR001 and SR002
-                service.AddRequest(new ServiceRequest
-                {
-                    RequestId = "SR010",
-                    Title = "Water Quality Testing",
-                    Description = "Test water quality after main break repair",
-                    Category = "Utilities",
-                    Status = RequestStatus.Submitted,
-                    DateSubmitted = DateTime.Now.AddDays(-4),
-                    Location = "Main Street Area",
-                    Priority = 2,
-                    AssignedDepartment = "Water & Sanitation",
-                    Dependencies = new List<string> { "SR001", "SR002" }
-                });
-
-                Console.WriteLine("✅ Successfully seeded 10 sample service requests!");
-                Console.WriteLine("📊 Data structures initialized: BST, AVL, RB-Tree, Heap, Graph");
+                Console.WriteLine("✅ Successfully seeded service requests with dependencies!");
             }
         }
     }

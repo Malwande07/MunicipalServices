@@ -64,7 +64,68 @@ namespace MunicipalServices.Data
                 {
                     request.DateCompleted = DateTime.Now;
                 }
+
+                // Auto-update dependent requests
+                if (newStatus == RequestStatus.Completed)
+                {
+                    AutoResolveOrUnblockDependentRequests(requestId);
+                }
             }
+        }
+
+        // Automatically update dependent requests
+        private void AutoResolveOrUnblockDependentRequests(string completedRequestId)
+        {
+            // Find all requests that depend on the completed request
+            var dependentRequests = _requests.Where(r =>
+                r.Dependencies != null &&
+                r.Dependencies.Contains(completedRequestId)
+            ).ToList();
+
+            foreach (var dependentRequest in dependentRequests)
+            {
+                // Check if ALL dependencies are now completed
+                bool allDependenciesCompleted = dependentRequest.Dependencies.All(depId =>
+                {
+                    var dep = GetRequestById(depId);
+                    return dep != null && dep.Status == RequestStatus.Completed;
+                });
+
+                // If all dependencies completed, update status
+                if (allDependenciesCompleted)
+                {
+                    if (dependentRequest.Status == RequestStatus.OnHold)
+                    {
+                        // Move from OnHold to Submitted (ready to work)
+                        dependentRequest.Status = RequestStatus.Submitted;
+                    }
+                    else if (dependentRequest.Status == RequestStatus.Submitted)
+                    {
+                        // If it was a "duplicate report", mark as completed
+                        if (IsDuplicateReport(dependentRequest))
+                        {
+                            dependentRequest.Status = RequestStatus.Completed;
+                            dependentRequest.DateCompleted = DateTime.Now;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Determine if request is a duplicate report
+        private bool IsDuplicateReport(ServiceRequest request)
+        {
+            // Logic: If request has same category and location as its dependency
+            if (request.Dependencies == null || !request.Dependencies.Any())
+                return false;
+
+            var mainDependency = GetRequestById(request.Dependencies.First());
+            if (mainDependency == null)
+                return false;
+
+            // Check if it's a "no water" report dependent on "water main break"
+            return request.Category == mainDependency.Category &&
+                   request.Location == mainDependency.Location;
         }
 
         // ========================

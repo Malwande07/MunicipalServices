@@ -17,7 +17,7 @@
 
     <!-- Statistics -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-primary text-white text-center">
                 <div class="card-body">
                     <h3>@ViewBag.TotalRequests</h3>
@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-info text-white text-center">
                 <div class="card-body">
                     <h3>@(mst?.Count ?? 0)</h3>
@@ -33,11 +33,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-success text-white text-center">
                 <div class="card-body">
                     <h3>@Model.Count(r => r.Dependencies != null && r.Dependencies.Any())</h3>
-                    <p class="mb-0">Requests with Dependencies</p>
+                    <p class="mb-0">Blocked Requests</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark text-center">
+                <div class="card-body">
+                    <h3>@Model.Count(r => r.Status == MunicipalServices.Models.RequestStatus.OnHold)</h3>
+                    <p class="mb-0">On Hold</p>
                 </div>
             </div>
         </div>
@@ -48,25 +56,34 @@
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">🔗 Dependency Graph Visualization</h5>
             <div class="btn-group btn-group-sm">
-                <button class="btn btn-light btn-sm" onclick="resetZoom()">Reset View</button>
+                <button class="btn btn-light btn-sm" onclick="resetZoom()">
+                    <i class="bi bi-arrow-clockwise"></i> Reset View
+                </button>
+                <button class="btn btn-light btn-sm" onclick="autoArrange()">
+                    <i class="bi bi-diagram-3"></i> Auto Arrange
+                </button>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div id="graphCanvas" style="width: 100%; height: 600px; border: 1px solid #ddd; background: #f8f9fa;"></div>
+        <div class="card-body p-0 position-relative">
+            <canvas id="graphCanvas" style="width: 100%; height: 600px; cursor: grab;"></canvas>
+            <div id="nodeTooltip" style="display: none; position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; pointer-events: none; z-index: 1000;"></div>
         </div>
         <div class="card-footer bg-light">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <span class="badge bg-danger">●</span> High Priority
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <span class="badge bg-warning text-dark">●</span> Medium Priority
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <span class="badge bg-secondary">●</span> Low Priority
                 </div>
                 <div class="col-md-3">
-                    <small class="text-muted">Click and drag to move nodes</small>
+                    <small class="text-muted"><i class="bi bi-hand-index"></i> Click node to view details</small>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted"><i class="bi bi-arrows-move"></i> Drag to rearrange</small>
                 </div>
             </div>
         </div>
@@ -89,15 +106,29 @@
                                 <th>Status</th>
                                 <th>Priority</th>
                                 <th>Depends On</th>
+                                <th>Blocking</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var request in Model.Where(r => r.Dependencies != null && r.Dependencies.Any()))
                             {
-                                <tr>
-                                    <td><strong>@request.RequestId</strong></td>
-                                    <td>@request.Title</td>
+                                var blockingCount = Model.Count(r => r.Dependencies != null && r.Dependencies.Contains(request.RequestId));
+                                <tr style="cursor: pointer;" onclick="window.location='@Url.Action("Details", "ServiceRequest", new { id = request.RequestId })'">
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@request.RequestId" 
+                                           class="fw-bold text-primary text-decoration-none"
+                                           onclick="event.stopPropagation();">
+                                            <i class="bi bi-file-text"></i> @request.RequestId
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@request.RequestId" 
+                                           class="text-decoration-none text-dark"
+                                           onclick="event.stopPropagation();">
+                                            @request.Title
+                                        </a>
+                                    </td>
                                     <td>
                                         @switch (request.Status)
                                         {
@@ -121,30 +152,46 @@
                                     <td>
                                         @if (request.Priority == 1)
                                         {
-                                            <span class="badge bg-danger">High</span>
+                                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> High</span>
                                         }
                                         else if (request.Priority == 2)
                                         {
-                                            <span class="badge bg-warning text-dark">Medium</span>
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">Low</span>
+                                            <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> Low</span>
                                         }
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
                                             @foreach (var dep in request.Dependencies)
                                             {
-                                                <a asp-action="Details" asp-route-id="@dep" class="badge bg-info text-decoration-none">
-                                                    @dep
+                                                <a asp-action="Details" asp-route-id="@dep" 
+                                                   class="badge bg-info text-decoration-none"
+                                                   onclick="event.stopPropagation();">
+                                                    <i class="bi bi-link-45deg"></i> @dep
                                                 </a>
                                             }
                                         </div>
                                     </td>
                                     <td>
-                                        <a asp-action="Details" asp-route-id="@request.RequestId" class="btn btn-sm btn-outline-primary">
-                                            View Details
+                                        @if (blockingCount > 0)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-lock-fill"></i> Blocking @blockingCount
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@request.RequestId" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           onclick="event.stopPropagation();">
+                                            <i class="bi bi-eye"></i> View
                                         </a>
                                     </td>
                                 </tr>
@@ -165,13 +212,25 @@
     <!-- Graph Explanation -->
     <div class="card mt-4 bg-light">
         <div class="card-body">
-            <h6 class="fw-bold">📚 Understanding the Graph:</h6>
-            <ul class="mb-0">
-                <li><strong>Nodes</strong> represent service requests (color-coded by priority)</li>
-                <li><strong>Arrows</strong> show dependencies (pointing from dependent to required request)</li>
-                <li><strong>Interactive</strong> - Drag nodes to rearrange the graph layout</li>
-                <li>Requests on hold may be waiting for their dependencies to complete</li>
-            </ul>
+            <h6 class="fw-bold"><i class="bi bi-book"></i> Understanding the Graph:</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li><strong>Nodes (Circles)</strong> represent service requests</li>
+                        <li><strong>Node Color</strong> indicates priority level</li>
+                        <li><strong>Border Color</strong> shows current status</li>
+                        <li><strong>Arrows</strong> point from dependent → required request</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li><strong>Click</strong> any node to view full details</li>
+                        <li><strong>Drag</strong> nodes to rearrange the layout</li>
+                        <li><strong>Hover</strong> over nodes to see quick info</li>
+                        <li>Requests on hold are likely waiting for dependencies</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -184,55 +243,67 @@
         title = r.Title,
         priority = r.Priority,
         status = r.Status.ToString(),
-        dependencies = r.Dependencies ?? new List<string>()
+        dependencies = r.Dependencies ?? new List<string>(),
+        location = r.Location,
+        category = r.Category
     })));
 
     // Canvas setup
     const canvas = document.getElementById('graphCanvas');
     const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('nodeTooltip');
     
     // Set canvas size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = 600;
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 600;
+    }
+    resizeCanvas();
 
     // Graph data structures
     const nodes = {};
     const edges = [];
 
     // Create nodes with positions
-    requests.forEach((req, index) => {
-        const angle = (index / requests.length) * 2 * Math.PI;
-        const radius = Math.min(canvas.width, canvas.height) * 0.35;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+    function initializeNodes() {
+        requests.forEach((req, index) => {
+            const angle = (index / requests.length) * 2 * Math.PI;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
 
-        nodes[req.id] = {
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle),
-            id: req.id,
-            title: req.title,
-            priority: req.priority,
-            status: req.status,
-            radius: 25,
-            isDragging: false,
-            vx: 0,
-            vy: 0
-        };
-    });
+            nodes[req.id] = {
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle),
+                id: req.id,
+                title: req.title,
+                priority: req.priority,
+                status: req.status,
+                location: req.location,
+                category: req.category,
+                radius: 30,
+                isDragging: false,
+                vx: 0,
+                vy: 0
+            };
+        });
 
-    // Create edges from dependencies
-    requests.forEach(req => {
-        if (req.dependencies && req.dependencies.length > 0) {
-            req.dependencies.forEach(depId => {
-                if (nodes[depId]) {
-                    edges.push({
-                        from: req.id,
-                        to: depId
-                    });
-                }
-            });
-        }
-    });
+        // Create edges from dependencies
+        requests.forEach(req => {
+            if (req.dependencies && req.dependencies.length > 0) {
+                req.dependencies.forEach(depId => {
+                    if (nodes[depId]) {
+                        edges.push({
+                            from: req.id,
+                            to: depId
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    initializeNodes();
 
     // Get node color based on priority
     function getNodeColor(priority) {
@@ -243,7 +314,7 @@
         }
     }
 
-    // Get status color
+    // Get status color for border
     function getStatusColor(status) {
         switch(status) {
             case 'Completed': return '#28a745';
@@ -256,16 +327,17 @@
 
     // Draw arrow
     function drawArrow(fromX, fromY, toX, toY) {
-        const headlen = 15;
+        const headlen = 12;
         const angle = Math.atan2(toY - fromY, toX - fromX);
         
-        // Adjust start and end points to node radius
-        const fromNode = Object.values(nodes).find(n => 
-            Math.abs(n.x - fromX) < 1 && Math.abs(n.y - fromY) < 1
-        );
-        const toNode = Object.values(nodes).find(n => 
-            Math.abs(n.x - toX) < 1 && Math.abs(n.y - toY) < 1
-        );
+        const fromNode = nodes[Object.keys(nodes).find(key => {
+            const n = nodes[key];
+            return Math.abs(n.x - fromX) < 1 && Math.abs(n.y - fromY) < 1;
+        })];
+        const toNode = nodes[Object.keys(nodes).find(key => {
+            const n = nodes[key];
+            return Math.abs(n.x - toX) < 1 && Math.abs(n.y - toY) < 1;
+        })];
 
         if (fromNode && toNode) {
             fromX = fromX + fromNode.radius * Math.cos(angle);
@@ -274,11 +346,16 @@
             toY = toY - toNode.radius * Math.sin(angle);
         }
 
+        // Draw line with gradient
+        const gradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
+        gradient.addColorStop(0, '#495057');
+        gradient.addColorStop(1, '#6c757d');
+        
         ctx.beginPath();
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
-        ctx.strokeStyle = '#495057';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
 
         // Draw arrowhead
@@ -308,58 +385,111 @@
 
         // Draw nodes
         Object.values(nodes).forEach(node => {
+            // Shadow effect
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
             // Draw node circle
             ctx.beginPath();
             ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
             ctx.fillStyle = getNodeColor(node.priority);
             ctx.fill();
+            
+            // Reset shadow for border
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Status border
             ctx.strokeStyle = getStatusColor(node.status);
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
             ctx.stroke();
 
             // Draw node label
             ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Arial';
+            ctx.font = 'bold 13px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(node.id, node.x, node.y);
 
             // Draw title below node
-            ctx.fillStyle = '#000';
-            ctx.font = '10px Arial';
-            const maxWidth = 100;
-            const title = node.title.length > 20 ? node.title.substring(0, 20) + '...' : node.title;
-            ctx.fillText(title, node.x, node.y + node.radius + 15, maxWidth);
+            ctx.fillStyle = '#212529';
+            ctx.font = '11px Arial';
+            const maxWidth = 120;
+            const title = node.title.length > 25 ? node.title.substring(0, 25) + '...' : node.title;
+            ctx.fillText(title, node.x, node.y + node.radius + 18, maxWidth);
         });
     }
 
     // Mouse interaction
     let selectedNode = null;
+    let hoveredNode = null;
     let offsetX = 0;
     let offsetY = 0;
+
+    function getNodeAtPosition(x, y) {
+        for (let node of Object.values(nodes)) {
+            const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+            if (dist < node.radius) {
+                return node;
+            }
+        }
+        return null;
+    }
 
     canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        Object.values(nodes).forEach(node => {
-            const dist = Math.sqrt((mouseX - node.x) ** 2 + (mouseY - node.y) ** 2);
-            if (dist < node.radius) {
-                selectedNode = node;
-                offsetX = mouseX - node.x;
-                offsetY = mouseY - node.y;
-                node.isDragging = true;
-            }
-        });
+        selectedNode = getNodeAtPosition(mouseX, mouseY);
+        if (selectedNode) {
+            offsetX = mouseX - selectedNode.x;
+            offsetY = mouseY - selectedNode.y;
+            selectedNode.isDragging = true;
+            canvas.style.cursor = 'grabbing';
+        }
     });
 
     canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
         if (selectedNode && selectedNode.isDragging) {
-            const rect = canvas.getBoundingClientRect();
-            selectedNode.x = e.clientX - rect.left - offsetX;
-            selectedNode.y = e.clientY - rect.top - offsetY;
+            selectedNode.x = mouseX - offsetX;
+            selectedNode.y = mouseY - offsetY;
             draw();
+        } else {
+            // Handle hover
+            const node = getNodeAtPosition(mouseX, mouseY);
+            if (node !== hoveredNode) {
+                hoveredNode = node;
+                if (node) {
+                    canvas.style.cursor = 'pointer';
+                    // Show tooltip
+                    tooltip.innerHTML = `
+                        <strong>${node.id}</strong><br>
+                        ${node.title}<br>
+                        <small>${node.category} - ${node.location}</small><br>
+                        <small>Priority: ${node.priority} | Status: ${node.status}</small>
+                    `;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.clientX - rect.left + 10) + 'px';
+                    tooltip.style.top = (e.clientY - rect.top + 10) + 'px';
+                } else {
+                    canvas.style.cursor = 'grab';
+                    tooltip.style.display = 'none';
+                }
+            }
+            
+            if (node && tooltip.style.display === 'block') {
+                tooltip.style.left = (e.clientX - rect.left + 10) + 'px';
+                tooltip.style.top = (e.clientY - rect.top + 10) + 'px';
+            }
         }
     });
 
@@ -367,6 +497,7 @@
         if (selectedNode) {
             selectedNode.isDragging = false;
             selectedNode = null;
+            canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
         }
     });
 
@@ -374,6 +505,22 @@
         if (selectedNode) {
             selectedNode.isDragging = false;
             selectedNode = null;
+        }
+        tooltip.style.display = 'none';
+        canvas.style.cursor = 'grab';
+    });
+
+    // Click to view details
+    canvas.addEventListener('click', (e) => {
+        if (selectedNode && selectedNode.isDragging) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const node = getNodeAtPosition(mouseX, mouseY);
+        if (node) {
+            window.location.href = '@Url.Action("Details", "ServiceRequest")?id=' + node.id;
         }
     });
 
@@ -391,12 +538,66 @@
         draw();
     }
 
+    // Auto arrange with force-directed layout
+    function autoArrange() {
+        const iterations = 100;
+        const repulsion = 8000;
+        const attraction = 0.01;
+        const damping = 0.8;
+
+        for (let iter = 0; iter < iterations; iter++) {
+            // Repulsion between all nodes
+            Object.values(nodes).forEach(n1 => {
+                n1.vx = 0;
+                n1.vy = 0;
+                Object.values(nodes).forEach(n2 => {
+                    if (n1 !== n2) {
+                        const dx = n1.x - n2.x;
+                        const dy = n1.y - n2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const force = repulsion / (dist * dist);
+                        n1.vx += (dx / dist) * force;
+                        n1.vy += (dy / dist) * force;
+                    }
+                });
+            });
+
+            // Attraction along edges
+            edges.forEach(edge => {
+                const n1 = nodes[edge.from];
+                const n2 = nodes[edge.to];
+                if (n1 && n2) {
+                    const dx = n2.x - n1.x;
+                    const dy = n2.y - n1.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const force = dist * attraction;
+                    n1.vx += dx * force;
+                    n1.vy += dy * force;
+                    n2.vx -= dx * force;
+                    n2.vy -= dy * force;
+                }
+            });
+
+            // Update positions
+            Object.values(nodes).forEach(node => {
+                node.x += node.vx * damping;
+                node.y += node.vy * damping;
+                
+                // Keep within bounds
+                node.x = Math.max(50, Math.min(canvas.width - 50, node.x));
+                node.y = Math.max(50, Math.min(canvas.height - 50, node.y));
+            });
+        }
+        
+        draw();
+    }
+
     // Initial draw
     draw();
 
     // Redraw on window resize
     window.addEventListener('resize', () => {
-        canvas.width = canvas.offsetWidth;
+        resizeCanvas();
         resetZoom();
     });
 </script>

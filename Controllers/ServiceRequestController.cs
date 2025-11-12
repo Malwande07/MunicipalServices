@@ -2,7 +2,7 @@
 using MunicipalServices.Data;
 using MunicipalServices.Models;
 using System;
-using System.Collections.Generic; // ✅ Add this line
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MunicipalServices.Controllers
@@ -66,9 +66,38 @@ namespace MunicipalServices.Controllers
             }
 
             // Get dependencies using graph
-            ViewBag.Dependencies = _service.GetDependencies(id);
+            var dependencies = _service.GetDependencies(id);
+            ViewBag.Dependencies = dependencies;
             ViewBag.BFSTraversal = _service.BFSTraversal(id);
             ViewBag.DFSTraversal = _service.DFSTraversal(id);
+
+            // Get full ServiceRequest objects for each dependency
+            var dependencyRequests = new List<ServiceRequest>();
+            if (dependencies != null && dependencies.Any())
+            {
+                foreach (var depId in dependencies)
+                {
+                    var depRequest = _service.GetRequestById(depId);
+                    if (depRequest != null)
+                    {
+                        dependencyRequests.Add(depRequest);
+                    }
+                }
+            }
+            ViewBag.DependencyRequests = dependencyRequests;
+
+            // Find all requests that depend on THIS request
+            var allRequests = _service.GetAllRequests();
+            var dependentRequests = new List<ServiceRequest>();
+
+            foreach (var req in allRequests)
+            {
+                if (req.RequestId != id && req.Dependencies != null && req.Dependencies.Contains(id))
+                {
+                    dependentRequests.Add(req);
+                }
+            }
+            ViewBag.DependentRequests = dependentRequests;
 
             return View(request);
         }

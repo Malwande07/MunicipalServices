@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Request Details";
     var dependencies = ViewBag.Dependencies as List<string>;
+    var dependencyRequests = ViewBag.DependencyRequests as List<MunicipalServices.Models.ServiceRequest>;
+    var dependentRequests = ViewBag.DependentRequests as List<MunicipalServices.Models.ServiceRequest>;
     var bfsTraversal = ViewBag.BFSTraversal as List<string>;
     var dfsTraversal = ViewBag.DFSTraversal as List<string>;
 }
@@ -19,26 +21,130 @@
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
+            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
     <h2 class="mb-4 text-center fw-bold text-primary">🔍 Request Details</h2>
 
+    <!-- Dependency Warning Alert -->
+    @if (dependencyRequests != null && dependencyRequests.Any())
+    {
+        var allCompleted = dependencyRequests.All(d => d.Status == MunicipalServices.Models.RequestStatus.Completed);
+        var completedCount = dependencyRequests.Count(d => d.Status == MunicipalServices.Models.RequestStatus.Completed);
+        
+        <div class="alert @(allCompleted ? "alert-success" : "alert-warning") alert-dismissible fade show">
+            <h5 class="alert-heading fw-bold">
+                @if (allCompleted)
+                {
+                    <i class="bi bi-check-circle-fill"></i> <text>All Dependencies Resolved</text>
+                }
+                else
+                {
+                    <i class="bi bi-exclamation-triangle-fill"></i> <text>This Request Has Dependencies</text>
+                }
+            </h5>
+            <p class="mb-2">
+                @if (allCompleted)
+                {
+                    <text>All prerequisite requests have been completed. This request can now proceed.</text>
+                }
+                else
+                {
+                    <text>Cannot proceed until the following requests are completed (@completedCount/@dependencyRequests.Count completed):</text>
+                }
+            </p>
+            <ul class="mb-0">
+                @foreach (var depRequest in dependencyRequests)
+                {
+                    <li class="mb-2">
+                        <a asp-action="Details" asp-route-id="@depRequest.RequestId" class="fw-bold text-decoration-none">
+                            @depRequest.RequestId - @depRequest.Title
+                        </a>
+                        @switch (depRequest.Status)
+                        {
+                            case MunicipalServices.Models.RequestStatus.Completed:
+                                <span class="badge bg-success ms-2"><i class="bi bi-check-circle"></i> Completed</span>
+                                break;
+                            case MunicipalServices.Models.RequestStatus.InProgress:
+                                <span class="badge bg-primary ms-2"><i class="bi bi-arrow-repeat"></i> In Progress</span>
+                                break;
+                            case MunicipalServices.Models.RequestStatus.OnHold:
+                                <span class="badge bg-warning text-dark ms-2"><i class="bi bi-pause-circle"></i> On Hold</span>
+                                break;
+                            case MunicipalServices.Models.RequestStatus.Submitted:
+                                <span class="badge bg-secondary ms-2"><i class="bi bi-clock-history"></i> Pending</span>
+                                break;
+                            case MunicipalServices.Models.RequestStatus.Cancelled:
+                                <span class="badge bg-danger ms-2"><i class="bi bi-x-circle"></i> Cancelled</span>
+                                break;
+                        }
+                        <small class="text-muted d-block ms-3">@depRequest.Category - @depRequest.Location</small>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Dependents Info Alert -->
+    @if (dependentRequests != null && dependentRequests.Any())
+    {
+        <div class="alert alert-info alert-dismissible fade show">
+            <h5 class="alert-heading fw-bold">
+                <i class="bi bi-diagram-3-fill"></i> Requests Waiting on This Issue
+            </h5>
+            <p class="mb-2">The following @dependentRequests.Count request(s) are blocked waiting for this to complete:</p>
+            <ul class="mb-2">
+                @foreach (var dep in dependentRequests)
+                {
+                    <li class="mb-2">
+                        <a asp-action="Details" asp-route-id="@dep.RequestId" class="fw-bold text-decoration-none">
+                            @dep.RequestId - @dep.Title
+                        </a>
+                        @switch (dep.Status)
+                        {
+                            case MunicipalServices.Models.RequestStatus.OnHold:
+                                <span class="badge bg-warning text-dark ms-2">On Hold (Blocked)</span>
+                                break;
+                            case MunicipalServices.Models.RequestStatus.Submitted:
+                                <span class="badge bg-secondary ms-2">Submitted (Waiting)</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary ms-2">@dep.Status</span>
+                                break;
+                        }
+                        <small class="text-muted d-block ms-3">
+                            Priority @dep.Priority - Submitted @dep.DateSubmitted.ToString("MMM dd")
+                        </small>
+                    </li>
+                }
+            </ul>
+            <div class="alert alert-light border mb-0 mt-3">
+                <small class="text-muted mb-0">
+                    <i class="bi bi-lightbulb-fill text-warning"></i>
+                    <strong>Auto-Update:</strong> Completing this request will automatically update the status of dependent requests that are duplicates or directly resolved by this work.
+                </small>
+            </div>
+        </div>
+    }
+
     <!-- Main Request Card -->
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">@Model.RequestId - @Model.Title</h4>
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i>
+                        @Model.RequestId - @Model.Title
+                    </h4>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong>Category:</strong> <span class="badge bg-info">@Model.Category</span></p>
-                            <p><strong>Location:</strong> @Model.Location</p>
-                            <p><strong>Department:</strong> @Model.AssignedDepartment</p>
+                            <p><strong>Location:</strong> <i class="bi bi-geo-alt-fill text-danger"></i> @Model.Location</p>
+                            <p><strong>Department:</strong> <i class="bi bi-building"></i> @Model.AssignedDepartment</p>
                         </div>
                         <div class="col-md-6">
                             <p>
@@ -46,19 +152,19 @@
                                 @switch (Model.Status)
                                 {
                                     case MunicipalServices.Models.RequestStatus.Submitted:
-                                        <span class="badge bg-secondary">Submitted</span>
+                                        <span class="badge bg-secondary"><i class="bi bi-inbox"></i> Submitted</span>
                                         break;
                                     case MunicipalServices.Models.RequestStatus.InProgress:
-                                        <span class="badge bg-primary">In Progress</span>
+                                        <span class="badge bg-primary"><i class="bi bi-arrow-repeat"></i> In Progress</span>
                                         break;
                                     case MunicipalServices.Models.RequestStatus.OnHold:
-                                        <span class="badge bg-warning text-dark">On Hold</span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-pause-circle"></i> On Hold</span>
                                         break;
                                     case MunicipalServices.Models.RequestStatus.Completed:
-                                        <span class="badge bg-success">Completed</span>
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completed</span>
                                         break;
                                     case MunicipalServices.Models.RequestStatus.Cancelled:
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Cancelled</span>
                                         break;
                                 }
                             </p>
@@ -66,21 +172,21 @@
                                 <strong>Priority:</strong>
                                 @if (Model.Priority == 1)
                                 {
-                                    <span class="badge bg-danger">High (1)</span>
+                                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> High (1)</span>
                                 }
                                 else if (Model.Priority == 2)
                                 {
-                                    <span class="badge bg-warning text-dark">Medium (2)</span>
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium (2)</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Low (@Model.Priority)</span>
+                                    <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> Low (@Model.Priority)</span>
                                 }
                             </p>
-                            <p><strong>Date Submitted:</strong> @Model.DateSubmitted.ToString("MMMM dd, yyyy")</p>
+                            <p><strong>Date Submitted:</strong> <i class="bi bi-calendar-event"></i> @Model.DateSubmitted.ToString("MMMM dd, yyyy")</p>
                             @if (Model.DateCompleted.HasValue)
                             {
-                                <p><strong>Date Completed:</strong> @Model.DateCompleted.Value.ToString("MMMM dd, yyyy")</p>
+                                <p><strong>Date Completed:</strong> <i class="bi bi-calendar-check"></i> @Model.DateCompleted.Value.ToString("MMMM dd, yyyy")</p>
                             }
                         </div>
                     </div>
@@ -88,28 +194,68 @@
                     <hr />
 
                     <div class="mb-3">
-                        <h5 class="fw-bold">Description</h5>
+                        <h5 class="fw-bold"><i class="bi bi-card-text"></i> Description</h5>
                         <p class="text-muted">@Model.Description</p>
                     </div>
 
                     <!-- Update Status Form -->
                     @if (Model.Status != MunicipalServices.Models.RequestStatus.Completed &&
-                                        Model.Status != MunicipalServices.Models.RequestStatus.Cancelled)
+                         Model.Status != MunicipalServices.Models.RequestStatus.Cancelled)
                     {
                         <hr />
-                        <div class="mt-3">
-                            <h5 class="fw-bold mb-3">Update Status</h5>
-                            <form asp-action="UpdateStatus" method="post" class="d-flex gap-2 align-items-center">
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <h5 class="fw-bold mb-3">
+                                <i class="bi bi-arrow-up-circle"></i> Update Status
+                            </h5>
+                            <form asp-action="UpdateStatus" method="post" class="d-flex gap-2 align-items-center flex-wrap">
                                 <input type="hidden" name="requestId" value="@Model.RequestId" />
                                 <select name="newStatus" class="form-select" style="max-width: 250px;">
-                                    <option value="Submitted">Submitted</option>
-                                    <option value="InProgress">In Progress</option>
-                                    <option value="OnHold">On Hold</option>
-                                    <option value="Completed">Completed</option>
-                                    <option value="Cancelled">Cancelled</option>
+                                    @if (Model.Status == MunicipalServices.Models.RequestStatus.Submitted)
+                                    {
+                                        <option value="Submitted" selected>Submitted</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Submitted">Submitted</option>
+                                    }
+                                    
+                                    @if (Model.Status == MunicipalServices.Models.RequestStatus.InProgress)
+                                    {
+                                        <option value="InProgress" selected>In Progress</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="InProgress">In Progress</option>
+                                    }
+                                    
+                                    @if (Model.Status == MunicipalServices.Models.RequestStatus.OnHold)
+                                    {
+                                        <option value="OnHold" selected>On Hold</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="OnHold">On Hold</option>
+                                    }
+                                    
+                                    <option value="Completed">✓ Completed</option>
+                                    <option value="Cancelled">✗ Cancelled</option>
                                 </select>
-                                <button type="submit" class="btn btn-primary">Update Status</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Update Status
+                                </button>
                             </form>
+                            @if (dependentRequests != null && dependentRequests.Any())
+                            {
+                                <small class="text-muted d-block mt-2">
+                                    <i class="bi bi-info-circle"></i> Marking as <strong>Completed</strong> will trigger automatic updates for @dependentRequests.Count dependent request(s).
+                                </small>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mt-3">
+                            <i class="bi bi-lock-fill"></i> This request is <strong>@Model.Status</strong> and cannot be modified.
                         </div>
                     }
                 </div>
@@ -121,7 +267,7 @@
             <!-- Dependencies Card -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">📋 Dependencies</h5>
+                    <h5 class="mb-0"><i class="bi bi-diagram-2"></i> Dependencies</h5>
                 </div>
                 <div class="card-body">
                     @if (dependencies != null && dependencies.Any())
@@ -130,37 +276,85 @@
                         <ul class="list-group">
                             @foreach (var dep in dependencies)
                             {
-                                <li class="list-group-item">
+                                var depReq = dependencyRequests?.FirstOrDefault(d => d.RequestId == dep);
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <a asp-action="Details" asp-route-id="@dep" class="text-decoration-none">
-                                        @dep
+                                        <i class="bi bi-link-45deg"></i> @dep
                                     </a>
+                                    @if (depReq != null)
+                                    {
+                                        @if (depReq.Status == MunicipalServices.Models.RequestStatus.Completed)
+                                        {
+                                            <span class="badge bg-success rounded-pill">✓</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill">⏳</span>
+                                        }
+                                    }
                                 </li>
                             }
                         </ul>
                     }
                     else
                     {
-                        <p class="text-muted mb-0">No dependencies</p>
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="text-muted mb-0 mt-2">No dependencies</p>
+                        </div>
                     }
                 </div>
             </div>
 
+            <!-- Dependency Impact Summary -->
+            @if ((dependencyRequests != null && dependencyRequests.Any()) || (dependentRequests != null && dependentRequests.Any()))
+            {
+                <div class="card shadow-sm mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-diagram-3-fill"></i> Dependency Impact</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (dependencyRequests != null && dependencyRequests.Any())
+                        {
+                            var blockedCount = dependencyRequests.Count(d => d.Status != MunicipalServices.Models.RequestStatus.Completed);
+                            <div class="mb-3">
+                                <small class="text-muted">Blocked By:</small>
+                                <h4 class="mb-0 @(blockedCount > 0 ? "text-danger" : "text-success")">
+                                    @blockedCount/@dependencyRequests.Count
+                                </h4>
+                            </div>
+                        }
+                        @if (dependentRequests != null && dependentRequests.Any())
+                        {
+                            <div>
+                                <small class="text-muted">Blocking:</small>
+                                <h4 class="mb-0 text-warning">
+                                    @dependentRequests.Count request(s)
+                                </h4>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             <!-- Graph Traversals -->
             <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">🔀 Graph Traversals</h5>
+                    <h5 class="mb-0"><i class="bi bi-shuffle"></i> Graph Traversals</h5>
                 </div>
                 <div class="card-body">
                     <!-- BFS -->
                     @if (bfsTraversal != null && bfsTraversal.Any())
                     {
                         <div class="mb-3">
-                            <h6 class="fw-bold">BFS (Breadth-First):</h6>
+                            <h6 class="fw-bold"><i class="bi bi-arrow-right-circle"></i> BFS (Breadth-First):</h6>
                             <p class="small text-muted mb-1">Order of traversal:</p>
                             <div class="d-flex flex-wrap gap-1">
-                                @foreach (var node in bfsTraversal)
+                                @for (int i = 0; i < bfsTraversal.Count; i++)
                                 {
-                                    <span class="badge bg-primary">@node</span>
+                                    <span class="badge @(i == 0 ? "bg-primary" : "bg-primary") opacity-@(100 - (i * 10))">
+                                        @bfsTraversal[i]
+                                    </span>
                                 }
                             </div>
                         </div>
@@ -170,12 +364,14 @@
                     @if (dfsTraversal != null && dfsTraversal.Any())
                     {
                         <div>
-                            <h6 class="fw-bold">DFS (Depth-First):</h6>
+                            <h6 class="fw-bold"><i class="bi bi-arrow-down-circle"></i> DFS (Depth-First):</h6>
                             <p class="small text-muted mb-1">Order of traversal:</p>
                             <div class="d-flex flex-wrap gap-1">
-                                @foreach (var node in dfsTraversal)
+                                @for (int i = 0; i < dfsTraversal.Count; i++)
                                 {
-                                    <span class="badge bg-success">@node</span>
+                                    <span class="badge @(i == 0 ? "bg-success" : "bg-success") opacity-@(100 - (i * 10))">
+                                        @dfsTraversal[i]
+                                    </span>
                                 }
                             </div>
                         </div>
@@ -183,7 +379,10 @@
 
                     @if ((bfsTraversal == null || !bfsTraversal.Any()) && (dfsTraversal == null || !dfsTraversal.Any()))
                     {
-                        <p class="text-muted mb-0">No graph traversal available</p>
+                        <div class="text-center py-3">
+                            <i class="bi bi-graph-down text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mb-0 mt-2">No graph traversal available</p>
+                        </div>
                     }
                 </div>
             </div>
@@ -191,13 +390,17 @@
     </div>
 
     <!-- Related Actions -->
-    <div class="card bg-light mt-4">
+    <div class="card bg-light mt-4 shadow-sm">
         <div class="card-body text-center">
-            <a asp-action="DependencyGraph" class="btn btn-outline-primary me-2">
-                📊 View Full Dependency Graph
+            <h6 class="text-muted mb-3">Related Views</h6>
+            <a asp-action="DependencyGraph" class="btn btn-outline-primary me-2 mb-2">
+                <i class="bi bi-diagram-3"></i> View Full Dependency Graph
             </a>
-            <a asp-action="TreeView" class="btn btn-outline-secondary">
-                🌳 View Tree Structures
+            <a asp-action="TreeView" class="btn btn-outline-secondary me-2 mb-2">
+                <i class="bi bi-tree"></i> View Tree Structures
+            </a>
+            <a asp-action="Status" class="btn btn-outline-info mb-2">
+                <i class="bi bi-list-ul"></i> All Requests
             </a>
         </div>
     </div>

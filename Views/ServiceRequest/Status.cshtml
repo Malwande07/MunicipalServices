@@ -24,7 +24,10 @@
                 <div class="card bg-danger text-white">
                     <div class="card-body">
                         <h6 class="mb-1">⚡ Highest Priority Request</h6>
-                        <strong>@highestPriority.RequestId</strong> - @highestPriority.Title
+                        <a asp-action="Details" asp-route-id="@highestPriority.RequestId"
+                           class="text-white text-decoration-none fw-bold">
+                            <strong>@highestPriority.RequestId</strong> - @highestPriority.Title
+                        </a>
                         <span class="badge bg-warning text-dark ms-2">Priority @highestPriority.Priority</span>
                     </div>
                 </div>
@@ -53,10 +56,41 @@
                     <form asp-action="Status" method="get" class="d-flex gap-2 align-items-center">
                         <label class="fw-semibold mb-0">Sort by:</label>
                         <select name="sortBy" class="form-select" onchange="this.form.submit()">
-                            <option value="id" selected="@(ViewBag.CurrentSort == "id")">ID (BST)</option>
-                            <option value="priority" selected="@(ViewBag.CurrentSort == "priority")">Priority (AVL)</option>
-                            <option value="date" selected="@(ViewBag.CurrentSort == "date")">Date (RB Tree)</option>
-                            <option value="heap" selected="@(ViewBag.CurrentSort == "heap")">Urgent (Heap)</option>
+                            @if (ViewBag.CurrentSort == "id")
+                            {
+                                <option value="id" selected>ID (BST)</option>
+                            }
+                            else
+                            {
+                                <option value="id">ID (BST)</option>
+                            }
+
+                            @if (ViewBag.CurrentSort == "priority")
+                            {
+                                <option value="priority" selected>Priority (AVL)</option>
+                            }
+                            else
+                            {
+                                <option value="priority">Priority (AVL)</option>
+                            }
+
+                            @if (ViewBag.CurrentSort == "date")
+                            {
+                                <option value="date" selected>Date (RB Tree)</option>
+                            }
+                            else
+                            {
+                                <option value="date">Date (RB Tree)</option>
+                            }
+
+                            @if (ViewBag.CurrentSort == "heap")
+                            {
+                                <option value="heap" selected>Urgent (Heap)</option>
+                            }
+                            else
+                            {
+                                <option value="heap">Urgent (Heap)</option>
+                            }
                         </select>
                     </form>
                 </div>
@@ -107,9 +141,21 @@
                     <tbody>
                         @foreach (var request in Model)
                         {
-                            <tr>
-                                <td><strong>@request.RequestId</strong></td>
-                                <td>@request.Title</td>
+                            <tr style="cursor: pointer;" onclick="window.location='@Url.Action("Details", "ServiceRequest", new { id = request.RequestId })'">
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@request.RequestId"
+                                       class="text-decoration-none fw-bold text-primary"
+                                       onclick="event.stopPropagation();">
+                                        <i class="bi bi-file-text"></i> @request.RequestId
+                                    </a>
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@request.RequestId"
+                                       class="text-decoration-none text-dark"
+                                       onclick="event.stopPropagation();">
+                                        @request.Title
+                                    </a>
+                                </td>
                                 <td><span class="badge bg-info">@request.Category</span></td>
                                 <td>
                                     @switch (request.Status)
@@ -134,23 +180,30 @@
                                 <td>
                                     @if (request.Priority == 1)
                                     {
-                                        <span class="badge bg-danger">High</span>
+                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> High</span>
                                     }
                                     else if (request.Priority == 2)
                                     {
-                                        <span class="badge bg-warning text-dark">Medium</span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> Medium</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Low</span>
+                                        <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> Low</span>
                                     }
                                 </td>
-                                <td>@request.DateSubmitted.ToShortDateString()</td>
-                                <td>@request.Location</td>
+                                <td>
+                                    <i class="bi bi-calendar-event text-muted"></i>
+                                    @request.DateSubmitted.ToShortDateString()
+                                </td>
+                                <td>
+                                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                                    @request.Location
+                                </td>
                                 <td>
                                     <a asp-action="Details" asp-route-id="@request.RequestId"
-                                       class="btn btn-sm btn-outline-primary">
-                                        View Details
+                                       class="btn btn-sm btn-outline-primary"
+                                       onclick="event.stopPropagation();">
+                                        <i class="bi bi-eye"></i> View
                                     </a>
                                 </td>
                             </tr>
@@ -197,11 +250,22 @@
     </div>
 </div>
 
-@@section Scripts {
-<script>
-    // Add tooltips or additional interactivity here
-    $(function () {
-        $('[data-bs-toggle="tooltip"]').tooltip();
-    });
-</script>
+<style>
+    /* Hover effect for table rows */
+    tbody tr {
+        transition: background-color 0.2s;
+    }
+
+        tbody tr:hover {
+            background-color: #f8f9fa !important;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        // Add tooltips or additional interactivity here
+        $(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
 }

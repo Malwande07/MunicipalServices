@@ -1,0 +1,207 @@
+﻿@model IEnumerable<MunicipalServices.Models.ServiceRequest>
+
+@{
+    ViewData["Title"] = "Service Request Status";
+    var highestPriority = ViewBag.HighestPriority as MunicipalServices.Models.ServiceRequest;
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center fw-bold text-primary">🛠️ Service Request Status Tracker</h2>
+
+    <!-- Statistics Bar -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white text-center">
+                <div class="card-body">
+                    <h3>@ViewBag.TotalRequests</h3>
+                    <p class="mb-0">Total Requests</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            @if (highestPriority != null)
+            {
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h6 class="mb-1">⚡ Highest Priority Request</h6>
+                        <strong>@highestPriority.RequestId</strong> - @highestPriority.Title
+                        <span class="badge bg-warning text-dark ms-2">Priority @highestPriority.Priority</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Search by ID -->
+                <div class="col-md-5">
+                    <form asp-action="Status" method="get" class="d-flex gap-2">
+                        <input type="text" name="searchId" class="form-control"
+                               placeholder="Search by Request ID (uses BST)"
+                               value="@ViewBag.SearchId" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Sort Options -->
+                <div class="col-md-4">
+                    <form asp-action="Status" method="get" class="d-flex gap-2 align-items-center">
+                        <label class="fw-semibold mb-0">Sort by:</label>
+                        <select name="sortBy" class="form-select" onchange="this.form.submit()">
+                            <option value="id" selected="@(ViewBag.CurrentSort == "id")">ID (BST)</option>
+                            <option value="priority" selected="@(ViewBag.CurrentSort == "priority")">Priority (AVL)</option>
+                            <option value="date" selected="@(ViewBag.CurrentSort == "date")">Date (RB Tree)</option>
+                            <option value="heap" selected="@(ViewBag.CurrentSort == "heap")">Urgent (Heap)</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- View Options -->
+                <div class="col-md-3">
+                    <div class="btn-group w-100">
+                        <a asp-action="DependencyGraph" class="btn btn-outline-secondary btn-sm">
+                            📊 Dependencies
+                        </a>
+                        <a asp-action="TreeView" class="btn btn-outline-secondary btn-sm">
+                            🌳 Tree View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests Table -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    Service Requests
+                    @if (ViewBag.SearchPerformed == true)
+                    {
+                        <span class="badge bg-info">Search Results</span>
+                        <a asp-action="Status" class="btn btn-sm btn-secondary ms-2">Clear</a>
+                    }
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Date Submitted</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td><strong>@request.RequestId</strong></td>
+                                <td>@request.Title</td>
+                                <td><span class="badge bg-info">@request.Category</span></td>
+                                <td>
+                                    @switch (request.Status)
+                                    {
+                                        case MunicipalServices.Models.RequestStatus.Submitted:
+                                            <span class="badge bg-secondary">Submitted</span>
+                                            break;
+                                        case MunicipalServices.Models.RequestStatus.InProgress:
+                                            <span class="badge bg-primary">In Progress</span>
+                                            break;
+                                        case MunicipalServices.Models.RequestStatus.OnHold:
+                                            <span class="badge bg-warning text-dark">On Hold</span>
+                                            break;
+                                        case MunicipalServices.Models.RequestStatus.Completed:
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+                                        case MunicipalServices.Models.RequestStatus.Cancelled:
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (request.Priority == 1)
+                                    {
+                                        <span class="badge bg-danger">High</span>
+                                    }
+                                    else if (request.Priority == 2)
+                                    {
+                                        <span class="badge bg-warning text-dark">Medium</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Low</span>
+                                    }
+                                </td>
+                                <td>@request.DateSubmitted.ToShortDateString()</td>
+                                <td>@request.Location</td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@request.RequestId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-triangle"></i> No service requests found.
+            @if (ViewBag.SearchPerformed == true)
+            {
+                <p class="mb-0 mt-2">
+                    <a asp-action="Status" class="btn btn-primary">View All Requests</a>
+                </p>
+            }
+        </div>
+    }
+
+    <!-- Data Structure Info -->
+    <div class="card mt-4 bg-light">
+        <div class="card-body">
+            <h6 class="fw-bold">🔧 Data Structures in Use:</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li><strong>BST</strong> - Binary Search Tree for ID-based search (O(log n))</li>
+                        <li><strong>AVL Tree</strong> - Self-balancing tree for priority ordering</li>
+                        <li><strong>Red-Black Tree</strong> - Self-balancing tree for date ordering</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li><strong>Min-Heap</strong> - Priority queue for urgent requests</li>
+                        <li><strong>Graph</strong> - Dependency tracking with BFS/DFS traversal</li>
+                        <li><strong>MST</strong> - Minimum Spanning Tree for optimal dependencies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@@section Scripts {
+<script>
+    // Add tooltips or additional interactivity here
+    $(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+}

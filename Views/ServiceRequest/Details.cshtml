@@ -1,0 +1,204 @@
+﻿@model MunicipalServices.Models.ServiceRequest
+
+@{
+    ViewData["Title"] = "Request Details";
+    var dependencies = ViewBag.Dependencies as List<string>;
+    var bfsTraversal = ViewBag.BFSTraversal as List<string>;
+    var dfsTraversal = ViewBag.DFSTraversal as List<string>;
+}
+
+<div class="container mt-4">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a asp-action="Status" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to All Requests
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <h2 class="mb-4 text-center fw-bold text-primary">🔍 Request Details</h2>
+
+    <!-- Main Request Card -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">@Model.RequestId - @Model.Title</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Category:</strong> <span class="badge bg-info">@Model.Category</span></p>
+                            <p><strong>Location:</strong> @Model.Location</p>
+                            <p><strong>Department:</strong> @Model.AssignedDepartment</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Status:</strong>
+                                @switch (Model.Status)
+                                {
+                                    case MunicipalServices.Models.RequestStatus.Submitted:
+                                        <span class="badge bg-secondary">Submitted</span>
+                                        break;
+                                    case MunicipalServices.Models.RequestStatus.InProgress:
+                                        <span class="badge bg-primary">In Progress</span>
+                                        break;
+                                    case MunicipalServices.Models.RequestStatus.OnHold:
+                                        <span class="badge bg-warning text-dark">On Hold</span>
+                                        break;
+                                    case MunicipalServices.Models.RequestStatus.Completed:
+                                        <span class="badge bg-success">Completed</span>
+                                        break;
+                                    case MunicipalServices.Models.RequestStatus.Cancelled:
+                                        <span class="badge bg-danger">Cancelled</span>
+                                        break;
+                                }
+                            </p>
+                            <p>
+                                <strong>Priority:</strong>
+                                @if (Model.Priority == 1)
+                                {
+                                    <span class="badge bg-danger">High (1)</span>
+                                }
+                                else if (Model.Priority == 2)
+                                {
+                                    <span class="badge bg-warning text-dark">Medium (2)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Low (@Model.Priority)</span>
+                                }
+                            </p>
+                            <p><strong>Date Submitted:</strong> @Model.DateSubmitted.ToString("MMMM dd, yyyy")</p>
+                            @if (Model.DateCompleted.HasValue)
+                            {
+                                <p><strong>Date Completed:</strong> @Model.DateCompleted.Value.ToString("MMMM dd, yyyy")</p>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <h5 class="fw-bold">Description</h5>
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+
+                    <!-- Update Status Form -->
+                    @if (Model.Status != MunicipalServices.Models.RequestStatus.Completed &&
+                                        Model.Status != MunicipalServices.Models.RequestStatus.Cancelled)
+                    {
+                        <hr />
+                        <div class="mt-3">
+                            <h5 class="fw-bold mb-3">Update Status</h5>
+                            <form asp-action="UpdateStatus" method="post" class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                                <select name="newStatus" class="form-select" style="max-width: 250px;">
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="InProgress">In Progress</option>
+                                    <option value="OnHold">On Hold</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Update Status</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Dependencies Sidebar -->
+        <div class="col-lg-4">
+            <!-- Dependencies Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📋 Dependencies</h5>
+                </div>
+                <div class="card-body">
+                    @if (dependencies != null && dependencies.Any())
+                    {
+                        <p class="text-muted small">This request depends on:</p>
+                        <ul class="list-group">
+                            @foreach (var dep in dependencies)
+                            {
+                                <li class="list-group-item">
+                                    <a asp-action="Details" asp-route-id="@dep" class="text-decoration-none">
+                                        @dep
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No dependencies</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Graph Traversals -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">🔀 Graph Traversals</h5>
+                </div>
+                <div class="card-body">
+                    <!-- BFS -->
+                    @if (bfsTraversal != null && bfsTraversal.Any())
+                    {
+                        <div class="mb-3">
+                            <h6 class="fw-bold">BFS (Breadth-First):</h6>
+                            <p class="small text-muted mb-1">Order of traversal:</p>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var node in bfsTraversal)
+                                {
+                                    <span class="badge bg-primary">@node</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- DFS -->
+                    @if (dfsTraversal != null && dfsTraversal.Any())
+                    {
+                        <div>
+                            <h6 class="fw-bold">DFS (Depth-First):</h6>
+                            <p class="small text-muted mb-1">Order of traversal:</p>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var node in dfsTraversal)
+                                {
+                                    <span class="badge bg-success">@node</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if ((bfsTraversal == null || !bfsTraversal.Any()) && (dfsTraversal == null || !dfsTraversal.Any()))
+                    {
+                        <p class="text-muted mb-0">No graph traversal available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Actions -->
+    <div class="card bg-light mt-4">
+        <div class="card-body text-center">
+            <a asp-action="DependencyGraph" class="btn btn-outline-primary me-2">
+                📊 View Full Dependency Graph
+            </a>
+            <a asp-action="TreeView" class="btn btn-outline-secondary">
+                🌳 View Tree Structures
+            </a>
+        </div>
+    </div>
+</div>

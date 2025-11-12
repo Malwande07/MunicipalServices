@@ -1,0 +1,403 @@
+﻿@model IEnumerable<MunicipalServices.Models.ServiceRequest>
+
+@{
+    ViewData["Title"] = "Request Dependencies";
+    var mst = ViewBag.MinimumSpanningTree as List<(string From, string To, int Weight)>;
+}
+
+<div class="container-fluid mt-4">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a asp-action="Status" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Status
+        </a>
+    </div>
+
+    <h2 class="mb-4 text-center fw-bold text-primary">📊 Service Request Dependency Graph</h2>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white text-center">
+                <div class="card-body">
+                    <h3>@ViewBag.TotalRequests</h3>
+                    <p class="mb-0">Total Requests</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white text-center">
+                <div class="card-body">
+                    <h3>@(mst?.Count ?? 0)</h3>
+                    <p class="mb-0">Dependencies</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white text-center">
+                <div class="card-body">
+                    <h3>@Model.Count(r => r.Dependencies != null && r.Dependencies.Any())</h3>
+                    <p class="mb-0">Requests with Dependencies</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Graph -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">🔗 Dependency Graph Visualization</h5>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-light btn-sm" onclick="resetZoom()">Reset View</button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div id="graphCanvas" style="width: 100%; height: 600px; border: 1px solid #ddd; background: #f8f9fa;"></div>
+        </div>
+        <div class="card-footer bg-light">
+            <div class="row">
+                <div class="col-md-3">
+                    <span class="badge bg-danger">●</span> High Priority
+                </div>
+                <div class="col-md-3">
+                    <span class="badge bg-warning text-dark">●</span> Medium Priority
+                </div>
+                <div class="col-md-3">
+                    <span class="badge bg-secondary">●</span> Low Priority
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">Click and drag to move nodes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependency Details Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">📋 Dependency Details</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any(r => r.Dependencies != null && r.Dependencies.Any()))
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Depends On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model.Where(r => r.Dependencies != null && r.Dependencies.Any()))
+                            {
+                                <tr>
+                                    <td><strong>@request.RequestId</strong></td>
+                                    <td>@request.Title</td>
+                                    <td>
+                                        @switch (request.Status)
+                                        {
+                                            case MunicipalServices.Models.RequestStatus.Submitted:
+                                                <span class="badge bg-secondary">Submitted</span>
+                                                break;
+                                            case MunicipalServices.Models.RequestStatus.InProgress:
+                                                <span class="badge bg-primary">In Progress</span>
+                                                break;
+                                            case MunicipalServices.Models.RequestStatus.OnHold:
+                                                <span class="badge bg-warning text-dark">On Hold</span>
+                                                break;
+                                            case MunicipalServices.Models.RequestStatus.Completed:
+                                                <span class="badge bg-success">Completed</span>
+                                                break;
+                                            case MunicipalServices.Models.RequestStatus.Cancelled:
+                                                <span class="badge bg-danger">Cancelled</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (request.Priority == 1)
+                                        {
+                                            <span class="badge bg-danger">High</span>
+                                        }
+                                        else if (request.Priority == 2)
+                                        {
+                                            <span class="badge bg-warning text-dark">Medium</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Low</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var dep in request.Dependencies)
+                                            {
+                                                <a asp-action="Details" asp-route-id="@dep" class="badge bg-info text-decoration-none">
+                                                    @dep
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@request.RequestId" class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No requests with dependencies found.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Graph Explanation -->
+    <div class="card mt-4 bg-light">
+        <div class="card-body">
+            <h6 class="fw-bold">📚 Understanding the Graph:</h6>
+            <ul class="mb-0">
+                <li><strong>Nodes</strong> represent service requests (color-coded by priority)</li>
+                <li><strong>Arrows</strong> show dependencies (pointing from dependent to required request)</li>
+                <li><strong>Interactive</strong> - Drag nodes to rearrange the graph layout</li>
+                <li>Requests on hold may be waiting for their dependencies to complete</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Prepare data for the graph
+    const requests = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(r => new {
+        id = r.RequestId,
+        title = r.Title,
+        priority = r.Priority,
+        status = r.Status.ToString(),
+        dependencies = r.Dependencies ?? new List<string>()
+    })));
+
+    // Canvas setup
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 600;
+
+    // Graph data structures
+    const nodes = {};
+    const edges = [];
+
+    // Create nodes with positions
+    requests.forEach((req, index) => {
+        const angle = (index / requests.length) * 2 * Math.PI;
+        const radius = Math.min(canvas.width, canvas.height) * 0.35;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        nodes[req.id] = {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+            id: req.id,
+            title: req.title,
+            priority: req.priority,
+            status: req.status,
+            radius: 25,
+            isDragging: false,
+            vx: 0,
+            vy: 0
+        };
+    });
+
+    // Create edges from dependencies
+    requests.forEach(req => {
+        if (req.dependencies && req.dependencies.length > 0) {
+            req.dependencies.forEach(depId => {
+                if (nodes[depId]) {
+                    edges.push({
+                        from: req.id,
+                        to: depId
+                    });
+                }
+            });
+        }
+    });
+
+    // Get node color based on priority
+    function getNodeColor(priority) {
+        switch(priority) {
+            case 1: return '#dc3545'; // Red - High
+            case 2: return '#ffc107'; // Yellow - Medium
+            default: return '#6c757d'; // Gray - Low
+        }
+    }
+
+    // Get status color
+    function getStatusColor(status) {
+        switch(status) {
+            case 'Completed': return '#28a745';
+            case 'InProgress': return '#007bff';
+            case 'OnHold': return '#ffc107';
+            case 'Cancelled': return '#dc3545';
+            default: return '#6c757d';
+        }
+    }
+
+    // Draw arrow
+    function drawArrow(fromX, fromY, toX, toY) {
+        const headlen = 15;
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        
+        // Adjust start and end points to node radius
+        const fromNode = Object.values(nodes).find(n => 
+            Math.abs(n.x - fromX) < 1 && Math.abs(n.y - fromY) < 1
+        );
+        const toNode = Object.values(nodes).find(n => 
+            Math.abs(n.x - toX) < 1 && Math.abs(n.y - toY) < 1
+        );
+
+        if (fromNode && toNode) {
+            fromX = fromX + fromNode.radius * Math.cos(angle);
+            fromY = fromY + fromNode.radius * Math.sin(angle);
+            toX = toX - toNode.radius * Math.cos(angle);
+            toY = toY - toNode.radius * Math.sin(angle);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.strokeStyle = '#495057';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw arrowhead
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), 
+                   toY - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), 
+                   toY - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.lineTo(toX, toY);
+        ctx.fillStyle = '#495057';
+        ctx.fill();
+    }
+
+    // Draw the graph
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw edges
+        edges.forEach(edge => {
+            const from = nodes[edge.from];
+            const to = nodes[edge.to];
+            if (from && to) {
+                drawArrow(from.x, from.y, to.x, to.y);
+            }
+        });
+
+        // Draw nodes
+        Object.values(nodes).forEach(node => {
+            // Draw node circle
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = getNodeColor(node.priority);
+            ctx.fill();
+            ctx.strokeStyle = getStatusColor(node.status);
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw node label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.id, node.x, node.y);
+
+            // Draw title below node
+            ctx.fillStyle = '#000';
+            ctx.font = '10px Arial';
+            const maxWidth = 100;
+            const title = node.title.length > 20 ? node.title.substring(0, 20) + '...' : node.title;
+            ctx.fillText(title, node.x, node.y + node.radius + 15, maxWidth);
+        });
+    }
+
+    // Mouse interaction
+    let selectedNode = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        Object.values(nodes).forEach(node => {
+            const dist = Math.sqrt((mouseX - node.x) ** 2 + (mouseY - node.y) ** 2);
+            if (dist < node.radius) {
+                selectedNode = node;
+                offsetX = mouseX - node.x;
+                offsetY = mouseY - node.y;
+                node.isDragging = true;
+            }
+        });
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (selectedNode && selectedNode.isDragging) {
+            const rect = canvas.getBoundingClientRect();
+            selectedNode.x = e.clientX - rect.left - offsetX;
+            selectedNode.y = e.clientY - rect.top - offsetY;
+            draw();
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        if (selectedNode) {
+            selectedNode.isDragging = false;
+            selectedNode = null;
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        if (selectedNode) {
+            selectedNode.isDragging = false;
+            selectedNode = null;
+        }
+    });
+
+    // Reset zoom function
+    function resetZoom() {
+        requests.forEach((req, index) => {
+            const angle = (index / requests.length) * 2 * Math.PI;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            nodes[req.id].x = centerX + radius * Math.cos(angle);
+            nodes[req.id].y = centerY + radius * Math.sin(angle);
+        });
+        draw();
+    }
+
+    // Initial draw
+    draw();
+
+    // Redraw on window resize
+    window.addEventListener('resize', () => {
+        canvas.width = canvas.offsetWidth;
+        resetZoom();
+    });
+</script>
+}

@@ -312,10 +312,42 @@ This application demonstrates:
 ✅ Dependency tracking accurate
 ✅ Graph visualization interactive
 
+referencing Albahari, J., & Albahari, B. (2022). C# 10 in a Nutshell (7th ed.). O'Reilly Media.
+Bass, L., Clements, P., & Kazman, R. (2012). Software Architecture in Practice (3rd ed.). Addison-Wesley Professional.
+Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2009). Introduction to Algorithms (3rd ed.). MIT Press.
+Di Battista, G., Eades, P., Tamassia, R., & Tollis, I. G. (1998). Graph Drawing: Algorithms for the Visualization of Graphs. Prentice Hall.
+Evans, E. (2003). Domain-Driven Design: Tackling Complexity in the Heart of Software. Addison-Wesley Professional.
+Even, S. (2011). Graph Algorithms (2nd ed.). Cambridge University Press.
+Fowler, M. (2002). Patterns of Enterprise Application Architecture. Addison-Wesley Professional.
+Freeman, A. (2022). Pro ASP.NET Core 6 (10th ed.). Apress.
+Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley.
+Krug, S. (2013). Don't Make Me Think, Revisited: A Common Sense Approach to Web Usability (3rd ed.). New Riders.
+Norman, D. A. (2013). The Design of Everyday Things (Revised ed.). Basic Books.
+Sedgewick, R., & Wayne, K. (2011). Algorithms (4th ed.). Addison-Wesley Professional.
+Weiss, M. A. (2011). Data Structures and Algorithm Analysis in C++ (4th ed.). Pearson.
+
+Journal Articles & Papers
+
+Adelson-Velsky, G., & Landis, E. M. (1962). "An algorithm for the organization of information." Soviet Mathematics Doklady, 3, 1259-1263.
+Eades, P. (1984). "A heuristic for graph drawing." Congressus Numerantium, 42, 149-160.
+Floyd, R. W. (1964). "Algorithm 245: Treesort 3." Communications of the ACM, 7(12), 701.
+Fruchterman, T. M. J., & Reingold, E. M. (1991). "Graph drawing by force-directed placement." Software: Practice and Experience, 21(11), 1129-1164.
+Guibas, L. J., & Sedgewick, R. (1978). "A dichromatic framework for balanced trees." Proceedings of the 19th Annual Symposium on Foundations of Computer Science (pp. 8-21). IEEE.
+Herman, I., Melançon, G., & Marshall, M. S. (2000). "Graph visualization and navigation in information visualization: A survey." IEEE Transactions on Visualization and Computer Graphics, 6(1), 24-43.
+Kruskal, J. B. (1956). "On the shortest spanning subtree of a graph and the traveling salesman problem." Proceedings of the American Mathematical Society, 7(1), 48-50.
+Prim, R. C. (1957). "Shortest connection networks and some generalizations." Bell System Technical Journal, 36(6), 1389-1401.
+Williams, J. W. J. (1964). "Algorithm 232: Heapsort." Communications of the ACM, 7(6), 347-348.
+
+Online Resources
+
+Bootstrap Team. (2024). Bootstrap 5 Documentation. Retrieved from https://getbootstrap.com/docs/5.3/
+MDN Web Docs. (2024). Canvas API. Retrieved from https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API
+Microsoft Corporation. (2024). ASP.NET Core Documentation. Retrieved from https://docs.microsoft.com/en-us/aspnet/core/
+W3C. (2021). HTML Canvas 2D Context Specification. Retrieved from https://www.w3.org/TR/2dcontext/
 
 
 
 
----
 
-*Empowering citizens through efficient technology* 🏙️✨
+
+
